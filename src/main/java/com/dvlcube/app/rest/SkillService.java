@@ -9,6 +9,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,13 +40,25 @@ public class SkillService implements MxFilterableBeanService<SkillBean, Long> {
 	@Override
 	@GetMapping
 	public Iterable<SkillBean> get(@RequestParam Map<String, String> params) {
-		return repo.firstPage();
+		if(params.size() > 0 && params.get("name") != null){
+			return repo.findAllByName(params.get("name"));
+		}
+		return repo.firstPage(Sort.by(Sort.Direction.ASC, "name"));
 	}
 
 	@Override
 	@GetMapping("/{id}")
 	public Optional<SkillBean> get(@PathVariable Long id) {
 		return repo.findById(id);
+	}
+
+	@GetMapping("/exists")
+	public Boolean get(@RequestParam String name) {
+		if(repo.findAllByName(name).isEmpty()){
+			return false;
+		}else{
+			return true;
+		}
 	}
 
 	@Override
@@ -79,8 +92,8 @@ public class SkillService implements MxFilterableBeanService<SkillBean, Long> {
 	}
 
 	@GetMapping("/like")
-	public Iterable<SkillBean> getLike(@RequestParam(required = true) String id) {
-		return repo.findAllLike(id);
+	public Iterable<SkillBean> getLike(@RequestParam String name) {
+		return repo.findAllByName(name);
 	}
 
 	@DeleteMapping("/{id}")
